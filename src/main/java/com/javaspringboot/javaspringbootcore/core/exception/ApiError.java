@@ -24,6 +24,8 @@ public class ApiError {
     public static ApiError DEFERRABLE_TOKEN_EXPIRED = new ApiError(104, "Defferrable Token expired.");
     public static ApiError REQUIRED_TERMS_AND_CONDITIONS = new ApiError(105, "Terms and conditions is required.");
     public static ApiError TOKEN_CODE_ERROR = new ApiError(106, "Token code error.");
+    public static ApiError WRONG_EMAIL_OR_PASSWORD = new ApiError(107, "Wrong email or password.");
+
 
     // USER
     public static ApiError USER_EXISTS = new ApiError(201, "User exists.");

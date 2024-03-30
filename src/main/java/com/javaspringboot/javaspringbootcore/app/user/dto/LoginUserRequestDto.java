@@ -5,28 +5,25 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-public class UpdateUserRequestDto {
-
-    @NotEmpty(message = "The full name is required.")
-    @Size(min = 2, max = 100, message = "The length of full name must be between 2 and 100 characters.")
-    private String name;
-
-    @NotEmpty(message = "The full surname is required.")
-    @Size(min = 2, max = 100, message = "The length of full surname must be between 2 and 100 characters.")
-    private String surname;
+@NoArgsConstructor
+@AllArgsConstructor
+public class LoginUserRequestDto {
 
     @NotEmpty(message = "The email email is required.")
     @Email(message = "The email email is invalid.", flags = {Pattern.Flag.CASE_INSENSITIVE})
     private String email;
 
     @NotEmpty(message = "The password is required.")
-    @Size(min = 2, max = 100, message = "The length of full name must be between 2 and 100 characters.")
+    @Size(min = 6, max = 12, message = "The length of full name must be between 6 and 12 characters.")
     private String password;
+
     public User toUser() {
-        return new User().setUsername(name).setSurname(surname).setEmail(email).setPassword(password);
+        return new User().setEmail(email).setPassword(password);
 
     }
 }

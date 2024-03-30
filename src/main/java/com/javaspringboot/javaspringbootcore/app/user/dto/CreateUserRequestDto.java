@@ -19,10 +19,11 @@ public class CreateUserRequestDto {
     private String email;
 
     @NotEmpty(message = "The password is required.")
-    @Size(min = 2, max = 100, message = "The length of full name must be between 2 and 100 characters.")
+    @Size(min = 6, max = 12, message = "The length of full name must be between 6 and 12 characters.")
     private String password;
+
     public User toUser() {
-        return new User().setName(name).setSurname(surname).setEmail(email).setPassword(password);
+        return new User().setUsername(name).setSurname(surname).setEmail(email).setPassword(password);
 
     }
 }
