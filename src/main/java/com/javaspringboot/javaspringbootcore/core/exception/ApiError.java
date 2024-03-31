@@ -31,6 +31,7 @@ public class ApiError {
     public static ApiError USER_EXISTS = new ApiError(201, "User exists.");
     public static ApiError USER_EMAIL_EXISTS = new ApiError(202, "User email exists.");
     public static ApiError USER_NOT_FOUND = new ApiError(203, "User not found.");
+    public static ApiError NOT_AUTHORIZED = new ApiError(204, "You are not authorized.");
 
 
 }

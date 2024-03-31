@@ -1,4 +1,4 @@
-package com.javaspringboot.javaspringbootcore.app.user.dto;
+package com.javaspringboot.javaspringbootcore.core.dto;
 
 import com.javaspringboot.javaspringbootcore.app.user.enums.UserRole;
 import lombok.AllArgsConstructor;

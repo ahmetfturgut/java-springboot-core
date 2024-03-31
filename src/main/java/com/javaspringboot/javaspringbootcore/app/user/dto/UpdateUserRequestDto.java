@@ -10,6 +10,9 @@ import lombok.Data;
 @Data
 public class UpdateUserRequestDto {
 
+    @NotEmpty(message = "The id is required.")
+    private String id;
+
     @NotEmpty(message = "The full name is required.")
     @Size(min = 2, max = 100, message = "The length of full name must be between 2 and 100 characters.")
     private String name;

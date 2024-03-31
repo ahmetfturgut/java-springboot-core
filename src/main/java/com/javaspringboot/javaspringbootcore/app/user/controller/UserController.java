@@ -6,6 +6,7 @@ import com.javaspringboot.javaspringbootcore.app.user.dto.*;
 import com.javaspringboot.javaspringbootcore.app.user.enums.UserState;
 import com.javaspringboot.javaspringbootcore.app.user.service.UserService;
 import com.javaspringboot.javaspringbootcore.app.user.entity.User;
+import com.javaspringboot.javaspringbootcore.core.dto.AuthendicatedUserResponseDto;
 import com.javaspringboot.javaspringbootcore.core.exception.ApiError;
 import com.javaspringboot.javaspringbootcore.core.exception.ApiException;
 import com.javaspringboot.javaspringbootcore.core.response.ApiResponse;
@@ -13,6 +14,8 @@ import com.javaspringboot.javaspringbootcore.core.service.JwtService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
@@ -53,30 +56,30 @@ public class UserController {
     public ApiResponse<LoginUserResponseDto> login(@Valid @RequestBody LoginUserRequestDto requestDto) {
 
         User user = userService.login(requestDto.toUser());
-        Auth auth = authSerice.login(user, requestDto.getPassword());
+        Auth auth = authSerice.verifySingIn(user, requestDto.getPassword());
         return new ApiResponse<LoginUserResponseDto>(LoginUserResponseDto.builder().token(auth.getToken()).build());
 
     }
 
     @PostMapping("verifySingIn")
-    public ApiResponse<AuthendicatedUserResponseDto> verifySingIn(@Valid @RequestBody VerifySingInRequestDto requestDto) {
+    public ApiResponse<VerifySignInResponseDto> verifySingIn(@Valid @RequestBody VerifySingInRequestDto requestDto) {
         String email = jwtService.extractUsername(requestDto.getToken());
         User user = userService.findByEmail(email).orElseThrow(() -> new ApiException(ApiError.USER_NOT_FOUND));
 
-        authSerice.verifySingIn(user.getId(), requestDto.getVerificationCode());
+        Auth auth = authSerice.login(user, requestDto.getVerificationCode());
         user.setLastLoginDate(new Date());
         userService.save(user);
 
-        AuthendicatedUserResponseDto response = AuthendicatedUserResponseDto
+        VerifySignInResponseDto response = VerifySignInResponseDto.builder().authendicatedUserResponseDto(AuthendicatedUserResponseDto
                 .builder()
                 .id(user.getId())
                 .role(user.getRole())
                 .username(user.getUsername())
                 .surname(user.getSurname())
                 .email(user.getEmail())
-                .build();
+                .build()).token(auth.getToken()).build();
 
-        return new ApiResponse<AuthendicatedUserResponseDto>(response);
+        return new ApiResponse<VerifySignInResponseDto>(response);
     }
 
     @GetMapping("/{id}")
@@ -91,8 +94,15 @@ public class UserController {
         return new ApiResponse<List<User>>(users);
     }
 
-    @PutMapping("/{id}")
-    public ApiResponse<User> updateUser(@PathVariable("id") Long id, @Valid @RequestBody UpdateUserRequestDto requestDto) {
+    @PutMapping("/updateUser")
+    public ApiResponse<User> updateUser(@Valid @RequestBody UpdateUserRequestDto requestDto) {
+        User authentication = authSerice.getLoggedInUser();
+        Long id = Long.valueOf(requestDto.getId());
+
+        if (id.equals(authentication.getId())) {
+            throw new ApiException(ApiError.NOT_AUTHORIZED);
+        }
+
         User user = userService.updateUser(id, requestDto.toUser());
         return new ApiResponse<User>(user);
     }

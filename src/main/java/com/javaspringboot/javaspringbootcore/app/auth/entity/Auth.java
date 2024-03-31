@@ -5,6 +5,7 @@ import com.javaspringboot.javaspringbootcore.app.auth.enums.AuthType;
 import com.javaspringboot.javaspringbootcore.app.user.entity.User;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
