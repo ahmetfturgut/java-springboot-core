@@ -28,7 +28,7 @@ public class Auth {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private AuthState state = AuthState.PASSIVE;
+    private AuthState state = AuthState.ACTIVE;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

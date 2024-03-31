@@ -2,7 +2,6 @@ package com.javaspringboot.javaspringbootcore.app.user.entity;
 
 import com.javaspringboot.javaspringbootcore.app.user.enums.UserRole;
 import com.javaspringboot.javaspringbootcore.app.user.enums.UserState;
-import com.javaspringboot.javaspringbootcore.app.user.enums.UserType;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -36,9 +35,6 @@ public class User implements UserDetails {
     private String surname;
 
     @Enumerated(EnumType.STRING)
-    private UserType type;
-
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserState state = UserState.NOT_VERIFIED;
 
@@ -47,8 +43,6 @@ public class User implements UserDetails {
 
     @Column(nullable = false)
     private String password;
-
-    private String salt;
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date lastLoginDate;

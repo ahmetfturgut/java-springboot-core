@@ -1,5 +1,6 @@
 package com.javaspringboot.javaspringbootcore.app.user.controller;
 
+import com.javaspringboot.javaspringbootcore.app.auth.entity.Auth;
 import com.javaspringboot.javaspringbootcore.app.auth.service.AuthSerice;
 import com.javaspringboot.javaspringbootcore.app.user.dto.*;
 import com.javaspringboot.javaspringbootcore.app.user.enums.UserState;
@@ -11,14 +12,12 @@ import com.javaspringboot.javaspringbootcore.core.response.ApiResponse;
 import com.javaspringboot.javaspringbootcore.core.service.JwtService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 
-import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @RequestMapping("users")
@@ -27,38 +26,57 @@ public class UserController {
     private final UserService userService;
     private final AuthSerice authSerice;
     private final JwtService jwtService;
-    private final AuthenticationManager authenticationManager;
-
 
     @PostMapping("createUser")
     public ApiResponse<CreateUserResponseDto> createUser(@Valid @RequestBody CreateUserRequestDto requestDto) {
 
         User user = userService.createUser(requestDto.toUser());
+        //TODO: Email send
+        Auth auth = authSerice.createUser(user);
 
-        String token = jwtService.generateToken(user);
+        return new ApiResponse<CreateUserResponseDto>(CreateUserResponseDto.builder().token(auth.getToken()).build());
 
-        authSerice.createUser(user, token);
+    }
 
-        return new ApiResponse<CreateUserResponseDto>(CreateUserResponseDto.builder().token(token).build());
+    @PostMapping("verifySingUp")
+    public ApiResponse<HttpStatus> verifySingUp(@Valid @RequestBody VerifySingUpRequestDto requestDto) {
+        String email = jwtService.extractUsername(requestDto.getToken());
+        User user = userService.findByEmail(email).orElseThrow(() -> new ApiException(ApiError.USER_NOT_FOUND));
 
+        authSerice.verifySingUp(user.getId(), requestDto.getVerificationCode());
+        user.setState(UserState.ACTIVE);
+        userService.save(user);
+        return new ApiResponse<>(HttpStatus.OK);
     }
 
     @PostMapping("login")
     public ApiResponse<LoginUserResponseDto> login(@Valid @RequestBody LoginUserRequestDto requestDto) {
 
-        User user = userService.findByEmail(requestDto.getEmail())
-                .orElseThrow(() -> new ApiException(ApiError.WRONG_EMAIL_OR_PASSWORD));
+        User user = userService.login(requestDto.toUser());
+        Auth auth = authSerice.login(user, requestDto.getPassword());
+        return new ApiResponse<LoginUserResponseDto>(LoginUserResponseDto.builder().token(auth.getToken()).build());
 
-        if (!user.getState().equals(UserState.ACTIVE)) {
-            throw new ApiException(ApiError.WRONG_EMAIL_OR_PASSWORD);
-        }
+    }
 
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(requestDto.getEmail(), requestDto.getPassword()));
+    @PostMapping("verifySingIn")
+    public ApiResponse<AuthendicatedUserResponseDto> verifySingIn(@Valid @RequestBody VerifySingInRequestDto requestDto) {
+        String email = jwtService.extractUsername(requestDto.getToken());
+        User user = userService.findByEmail(email).orElseThrow(() -> new ApiException(ApiError.USER_NOT_FOUND));
 
-        String token = jwtService.generateToken(user);
-        return new ApiResponse<LoginUserResponseDto>(LoginUserResponseDto.builder().token(token).build());
+        authSerice.verifySingIn(user.getId(), requestDto.getVerificationCode());
+        user.setLastLoginDate(new Date());
+        userService.save(user);
 
+        AuthendicatedUserResponseDto response = AuthendicatedUserResponseDto
+                .builder()
+                .id(user.getId())
+                .role(user.getRole())
+                .username(user.getUsername())
+                .surname(user.getSurname())
+                .email(user.getEmail())
+                .build();
 
+        return new ApiResponse<AuthendicatedUserResponseDto>(response);
     }
 
     @GetMapping("/{id}")
