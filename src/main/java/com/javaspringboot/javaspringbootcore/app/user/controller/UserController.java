@@ -2,6 +2,8 @@ package com.javaspringboot.javaspringbootcore.app.user.controller;
 
 import com.javaspringboot.javaspringbootcore.app.auth.entity.Auth;
 import com.javaspringboot.javaspringbootcore.app.auth.service.AuthSerice;
+import com.javaspringboot.javaspringbootcore.app.email.model.Mail;
+import com.javaspringboot.javaspringbootcore.app.email.service.MailService;
 import com.javaspringboot.javaspringbootcore.app.user.dto.*;
 import com.javaspringboot.javaspringbootcore.app.user.enums.UserState;
 import com.javaspringboot.javaspringbootcore.app.user.service.UserService;
@@ -27,13 +29,15 @@ public class UserController {
     private final UserService userService;
     private final AuthSerice authSerice;
     private final JwtService jwtService;
+    private final MailService mailService;
 
     @PostMapping("createUser")
     public ApiResponse<CreateUserResponseDto> createUser(@Valid @RequestBody CreateUserRequestDto requestDto) {
 
         User user = userService.createUser(requestDto.toUser());
-        //TODO: Email send
+
         Auth auth = authSerice.createUser(user);
+        mailService.sendSignUpEmail(user, auth.getVerificationCode());
 
         return new ApiResponse<CreateUserResponseDto>(CreateUserResponseDto.builder().token(auth.getToken()).build());
 
