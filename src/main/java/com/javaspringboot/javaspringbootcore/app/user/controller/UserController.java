@@ -11,8 +11,7 @@ import com.javaspringboot.javaspringbootcore.core.dto.AuthendicatedUserResponseD
 import com.javaspringboot.javaspringbootcore.core.exception.ApiError;
 import com.javaspringboot.javaspringbootcore.core.exception.ApiException;
 import com.javaspringboot.javaspringbootcore.core.response.ApiResponse;
-import com.javaspringboot.javaspringbootcore.core.service.JwtService;
-import jakarta.validation.Valid;
+ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +28,7 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
     private final AuthSerice authSerice;
-    private final JwtService jwtService;
-    private final MailService mailService;
+     private final MailService mailService;
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @PostMapping("createUser")
@@ -51,7 +49,7 @@ public class UserController {
     public ApiResponse<HttpStatus> verifySingUp(@Valid @RequestBody VerifySingUpRequestDto requestDto) {
         logger.info("SignUp verification started for token: {}", requestDto.getToken());
 
-        String email = jwtService.extractUsername(requestDto.getToken());
+        String email = authSerice.extractUsername(requestDto.getToken());
         User user = userService.findByEmail(email).orElseGet(() -> {
             logger.error("User not found for email: {}", email);
             throw new ApiException(ApiError.USER_NOT_FOUND);
@@ -78,11 +76,22 @@ public class UserController {
 
     }
 
+    @GetMapping("signOut")
+    public ApiResponse<HttpStatus> signOut() {
+        logger.info("signOut started");
+        User authentication = authSerice.getLoggedInUser();
+        authSerice.singOut(authentication.getId());
+        logger.info("signOut successful for email: {}", authentication.getEmail());
+
+        return new ApiResponse<>(HttpStatus.OK);
+
+    }
+
     @PostMapping("verifySingIn")
     public ApiResponse<VerifySignInResponseDto> verifySingIn(@Valid @RequestBody VerifySingInRequestDto requestDto) {
         logger.info("SignIn verification started for token: {}", requestDto.getToken());
 
-        String email = jwtService.extractUsername(requestDto.getToken());
+        String email = authSerice.extractUsername(requestDto.getToken());
         User user = userService.findByEmail(email).orElseGet(() -> {
             logger.error("User not found for email: {}", email);
             throw new ApiException(ApiError.USER_NOT_FOUND);

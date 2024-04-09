@@ -1,6 +1,6 @@
 package com.javaspringboot.javaspringbootcore.core.config;
 
-import com.javaspringboot.javaspringbootcore.core.service.JwtService;
+import com.javaspringboot.javaspringbootcore.app.auth.service.AuthSerice;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,13 +20,14 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtService jwtService;
+    private final AuthSerice authSerice;
 
     private final UserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         final String header = request.getHeader("Authorization");
+        String path = request.getRequestURI();
         final String jwt;
         final String userEmail;
         if (header == null || !header.startsWith("Bearer ")) {
@@ -34,11 +35,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
         jwt = header.substring(7);
-        userEmail = jwtService.extractUsername(jwt);
-
+        userEmail = authSerice.extractUsername(jwt);
+        authSerice.checkAndGetAuthenticatedUser(jwt);
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
-            if (jwtService.tokenControl(jwt, userEmail)) {
+            if (authSerice.tokenControl(jwt, userEmail)) {
                 UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);

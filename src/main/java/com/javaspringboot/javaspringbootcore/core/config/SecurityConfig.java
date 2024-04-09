@@ -11,6 +11,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import static com.javaspringboot.javaspringbootcore.core.constants.SecurityConstants.PERMITTED_PATHS;
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -24,7 +26,7 @@ public class SecurityConfig {
         httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/users/createUser", "/users/login", "/users/verifySingUp", "/users/verifySingIn")
+                        .requestMatchers(PERMITTED_PATHS.toArray(new String[0]))
                         .permitAll()
                         .anyRequest()
                         .authenticated())

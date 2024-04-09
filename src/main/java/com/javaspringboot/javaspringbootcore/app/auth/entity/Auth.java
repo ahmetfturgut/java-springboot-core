@@ -17,6 +17,7 @@ import java.util.Date;
 @Getter
 @Setter
 @NoArgsConstructor
+@NamedEntityGraph(name = "Auth.user", attributeNodes = @NamedAttributeNode("user"))
 public class Auth {
 
     @Id
